@@ -163,6 +163,8 @@ async function saveEvent(data) {
     event.title = ''
     event.start_date = ''
     event.end_date = ''
+    event.description = ''
+
 
     updateMode.value = false
 
