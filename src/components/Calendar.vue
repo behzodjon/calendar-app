@@ -49,6 +49,8 @@
                                         class="inline-flex items-center justify-center w-6 h-6 ml-5 leading-none text-center transition duration-100 ease-in-out rounded-full"
                                         :class="{ 'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                     </div>
+
+                                    <!-- event section -->
                                     <div v-if="events.find(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())"
                                         class="mt-1 overflow-y-auto h-[80px]">
                                         <template
@@ -72,9 +74,7 @@
                                         <div class="flex justify-center text-sm text-blue-400 cursor-pointer hover:underline"
                                             @click="showEventModal(date)">Add event</div>
                                     </div>
-
                                 </div>
-
                             </template>
                         </div>
                     </div>
