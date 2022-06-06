@@ -22,11 +22,7 @@ export const useEventStore = defineStore('EventStore', {
       }
     },
     async updateEvent(event,data) {
-      try {
         await axios.put(`http://localhost:3001/events/${event.id}`, data)
-      } catch (e) {
-        console.error(e);
-      }
     },
     async deleteEvent(event) {
       try {

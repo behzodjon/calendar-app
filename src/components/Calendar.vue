@@ -12,11 +12,11 @@
                     <!-- navigation buttons -->
                     <div class="buttons">
                         <button :class="{ 'cursor-not-allowed opacity-25': calendar.month == 0 }"
-                            :disabled="calendar.month == 0 ? true : false" @click="prevMonth" class="p-1">
+                            :disabled="calendar.month == 0" @click="prevMonth" class="p-1">
                             Prev
                         </button>
                         <button :class="{ 'cursor-not-allowed opacity-25': calendar.month == 11 }"
-                            :disabled="calendar.month == 11 ? true : false" @click="nextMonth" class="p-1">
+                            :disabled="calendar.month == 11" @click="nextMonth" class="p-1">
                             Next
                         </button>
                     </div>
@@ -36,7 +36,7 @@
                         <div class="flex flex-wrap border-t border-l">
 
                             <!-- blank days -->
-                            <template v-for="blankday in calendar.blank_days">
+                            <template v-for="(blankday, index) in calendar.blank_days" :key="index">
                                 <div class="px-4 pt-2 text-center border-b border-r w-[14.28%] h-[120px]"></div>
                             </template>
 
@@ -54,7 +54,7 @@
                                     <div v-if="events.find(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())"
                                         class="mt-1 overflow-y-auto h-[80px]">
                                         <template
-                                            v-for="event in events.filter(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())">
+                                            v-for="event in events.filter(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())" :key="event.id">
                                             <div v-if="event">
                                                 <div
                                                     class="px-2 py-1 mt-1 overflow-hidden bg-yellow-400 border rounded-lg ">
@@ -119,7 +119,7 @@ const events = computed(() => store.events)
 const updateMode = ref(false)
 
 function isToday(date) {
-    return new Date().toDateString() === new Date(calendar.year, calendar.month, date).toDateString() ? true : false;
+    return new Date().toDateString() == new Date(calendar.year, calendar.month, date).toDateString() ? true : false;
 }
 
 function getMonthDays() {
@@ -159,12 +159,7 @@ async function saveEvent(data) {
         store.storeEvent(data)
     }
 
-    event.id = null
-    event.title = ''
-    event.start_date = ''
-    event.end_date = ''
-    event.description = ''
-
+    initEvent()
 
     updateMode.value = false
 
@@ -179,22 +174,23 @@ function showEventModal(date) {
     let eventData = events.value.find(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())
     if (eventData) {
         updateMode.value = true
-        event.id = eventData.id
-        event.title = eventData.title
-        event.description = eventData.description
-        event.start_date = eventData.start_date
-        event.end_date = eventData.end_date
+        initEvent(eventData)
     }
 }
 
+
 function closeModal() {
-    event.id = null
-    event.title = ''
-    event.description = ''
-    event.start_date = ''
-    event.end_date = ''
+    initEvent()
     updateMode.value = false
     calendar.openEventModal = false;
+}
+
+const initEvent = (params = {}) => {
+    event.id = params.id || null
+    event.title = params.title || ''
+    event.description = params.description || ''
+    event.start_date = params.start_date || ''
+    event.end_date = params.end_date || ''
 }
 function deleteEvent(event) {
     if (confirm("Are you sure to delete this event?")) {
