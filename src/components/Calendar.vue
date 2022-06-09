@@ -51,11 +51,11 @@
                                     </div>
 
                                     <!-- event section -->
-                                    <div v-if="events.find(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())"
+                                    <div v-if="events.find(e => checkEventDate(e, date))"
                                         class="mt-1 overflow-y-auto h-[80px]">
-                                        <template
-                                            v-for="event in events.filter(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())" :key="event.id">
-                                            <div v-if="event">
+                                        <template v-for="event in events.filter(e => checkEventDate(e, date))"
+                                            :key="event.id">
+                                            <div>
                                                 <div
                                                     class="px-2 py-1 mt-1 overflow-hidden bg-yellow-400 border rounded-lg ">
                                                     <p v-text="event.title" class="text-sm leading-tight truncate"></p>
@@ -82,8 +82,7 @@
             </div>
 
             <!-- modal calendar -->
-            <EventModal v-show="calendar.openEventModal" @save-event="saveEvent" @close-modal="closeModal"
-                :event="event" />
+            <EventModal v-show="openEventModal" @save-event="saveEvent" @close-modal="closeModal" :event="event" />
         </div>
     </div>
 </template>
@@ -104,6 +103,8 @@ const calendar = reactive({
     blank_days: [],
 })
 
+const openEventModal = ref(false)
+
 const event = reactive({
     title: null,
     description: null,
@@ -113,18 +114,16 @@ const event = reactive({
 })
 
 
-
 const events = computed(() => store.events)
 
 const updateMode = ref(false)
 
 function isToday(date) {
-    return new Date().toDateString() == new Date(calendar.year, calendar.month, date).toDateString() ? true : false;
+    return new Date().toDateString() === new Date(calendar.year, calendar.month, date).toDateString();
 }
 
 function getMonthDays() {
     let daysInMonth = new Date(calendar.year, calendar.month + 1, 0).getDate();
-    // find where to start calendar day of week
     let dayOfWeek = new Date(calendar.year, calendar.month).getDay();
 
     let blankdaysArray = [];
@@ -140,6 +139,7 @@ function getMonthDays() {
     calendar.blank_days = blankdaysArray;
     calendar.month_days = daysArray;
 }
+
 function nextMonth() {
     calendar.month++
     getMonthDays()
@@ -154,47 +154,51 @@ function prevMonth() {
 async function saveEvent(data) {
 
     if (updateMode.value) {
-        store.updateEvent(event, data)
+        await store.updateEvent(event, data)
     } else {
-        store.storeEvent(data)
+        await store.storeEvent(data)
     }
 
-    initEvent()
-
+    initFormEvent()
     updateMode.value = false
 
     //close the modal
-    calendar.openEventModal = false;
+    openEventModal.value = false;
     store.fetchEvents()
+
 }
 
 function showEventModal(date) {
     event.date = new Date(calendar.year, calendar.month, date).toDateString();
-    calendar.openEventModal = true;
-    let eventData = events.value.find(e => new Date(e.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString())
+    openEventModal.value = true;
+    let eventData = events.value.find(e => checkEventDate(e, date))
     if (eventData) {
         updateMode.value = true
-        initEvent(eventData)
+        initFormEvent(eventData)
     }
 }
 
-
-function closeModal() {
-    initEvent()
-    updateMode.value = false
-    calendar.openEventModal = false;
+function checkEventDate(data, date) {
+    return new Date(data.date).toDateString() === new Date(calendar.year, calendar.month, date).toDateString()
 }
 
-const initEvent = (params = {}) => {
+function closeModal() {
+    initFormEvent()
+    updateMode.value = false
+    openEventModal.value = false;
+}
+
+function initFormEvent(params = {}) {
     event.id = params.id || null
     event.title = params.title || ''
     event.description = params.description || ''
     event.start_date = params.start_date || ''
     event.end_date = params.end_date || ''
 }
-function deleteEvent(event) {
+
+async function deleteEvent(event) {
     if (confirm("Are you sure to delete this event?")) {
-        store.deleteEvent(event)
+        await store.deleteEvent(event)
     }
     store.fetchEvents()
 }

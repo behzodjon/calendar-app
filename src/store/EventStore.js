@@ -7,28 +7,28 @@ export const useEventStore = defineStore('EventStore', {
   },
   actions: {
     async fetchEvents() {
-      try {
-        const res = await axios.get('http://localhost:3001/events');
-        this.events = res.data;
-      } catch (e) {
-        console.error(e);
-      }
+      const response = await axios.get('http://localhost:3001/events');
+      this.events = response.data;
     },
     async storeEvent(data) {
       try {
         await axios.post('http://localhost:3001/events', data)
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        throw error
       }
     },
-    async updateEvent(event,data) {
+    async updateEvent(event, data) {
+      try {
         await axios.put(`http://localhost:3001/events/${event.id}`, data)
+      } catch (error) {
+        throw error
+      }
     },
     async deleteEvent(event) {
       try {
         await axios.delete(`http://localhost:3001/events/${event.id}`)
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        throw error
       }
     }
   },
